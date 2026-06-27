@@ -28,20 +28,20 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0.0"
-
-        // 支持大模型推理的大内存分配
         manifestPlaceholders += [largeHeap: "true"]
     }
 
     buildTypes {
         release {
-            // TODO: 发布时启用代码混淆和签名
             signingConfig signingConfigs.debug
             minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             debuggable true
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }
