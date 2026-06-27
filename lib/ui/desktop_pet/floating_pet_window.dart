@@ -136,16 +136,20 @@ class _FloatingPetWindowState extends State<FloatingPetWindow> {
     );
   }
 
-  /// 精灵图渲染（降级模式）—— 使用帧动画
+  /// Emoji 宠物渲染 —— 大号 Emoji + 切换动画展示情绪
   Widget _buildSpritePet(EmotionState emotion) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: 200 * _scale,
       height: 200 * _scale,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/sprites/${emotion.current.spriteName}.png'),
-          fit: BoxFit.contain,
+      child: Center(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: Text(
+            emotion.current.emoji,
+            key: ValueKey(emotion.current),
+            style: TextStyle(fontSize: 100 * _scale),
+          ),
         ),
       ),
     );
