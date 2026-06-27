@@ -1,0 +1,59 @@
+<!-- PetPal Android 清单文件 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.petpal">
+
+    <!-- 悬浮窗权限（系统级弹窗） -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 前台服务（保持宠物常驻） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 网络权限（模型下载、Firebase同步） -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 存储权限（模型和资源存储） -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- 电池状态 -->
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+    <!-- 通知权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 唤醒锁（提醒功能） -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 计划精确闹钟 -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <application
+        android:label="PetPal"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:largeHeap="true"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- 悬浮窗前台服务 -->
+        <service
+            android:name="com.petpal.PetOverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse" />
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+</manifest>

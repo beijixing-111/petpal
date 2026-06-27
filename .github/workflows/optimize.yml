@@ -1,0 +1,179 @@
+# =============================================================================
+# PetPal 优化流水线
+#
+# 触发条件:
+#   - schedule: 每周一凌晨 2:00 (UTC) 自动执行
+#   - workflow_dispatch: 支持手动触发
+#
+# 包含三个作业，后两个依赖第一个:
+#   - code-quality:         代码静态分析 & 单元测试
+#   - model-optimize:       模型量化（依赖 code-quality）
+#   - performance-benchmark: 性能基准测试（依赖 code-quality）
+# =============================================================================
+
+name: "PetPal 优化流水线"
+
+# ---------------------------------------------------------------------------
+# 触发条件
+# ---------------------------------------------------------------------------
+on:
+  schedule:
+    # 每周一凌晨 2:00 (UTC) 定时执行
+    # ┌───────── 分钟 (0-59)
+    # │ ┌───────── 小时 (0-23)
+    # │ │ ┌───────── 日 (1-31)
+    # │ │ │ ┌───────── 月 (1-12)
+    # │ │ │ │ ┌───────── 星期 (0-6, 0=周日)
+    # │ │ │ │ │
+    - cron: "0 2 * * 1"
+  workflow_dispatch:  # 允许在 GitHub Actions 界面手动触发
+
+# ---------------------------------------------------------------------------
+# 作业定义
+# ---------------------------------------------------------------------------
+jobs:
+
+  # =========================================================================
+  # 作业: code-quality —— 代码静态分析 & 单元测试
+  # =========================================================================
+  code-quality:
+    name: "代码质量检查"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20  # 单个作业最长 20 分钟
+
+    steps:
+      # 1. 检出仓库代码
+      - name: "检出代码"
+        uses: actions/checkout@v4
+
+      # 2. 安装 Flutter SDK（版本 3.19.x）
+      - name: "安装 Flutter 3.19"
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.x"
+          channel: "stable"
+
+      # 3. 获取 Flutter 项目依赖
+      - name: "安装 Flutter 依赖"
+        run: flutter pub get
+
+      # 4. 运行 Flutter 静态分析，结果输出到文件
+      #    --no-fatal-infos --no-fatal-warnings 确保不会因 info/warning 提前终止
+      - name: "运行 Flutter 静态分析"
+        run: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings > analyze_report.txt 2>&1 || true
+          echo "静态分析完成，报告已保存到 analyze_report.txt"
+
+      # 5. 运行 Flutter 单元测试，结果以 JSON 格式输出
+      - name: "运行 Flutter 单元测试"
+        run: |
+          flutter test --machine > test_report.json 2>&1 || true
+          echo "单元测试完成，报告已保存到 test_report.json"
+
+      # 6. 上传静态分析报告
+      - name: "上传静态分析报告"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: analyze-report
+          path: analyze_report.txt
+          retention-days: 14
+
+      # 7. 上传单元测试报告
+      - name: "上传单元测试报告"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: test_report.json
+          retention-days: 14
+
+  # =========================================================================
+  # 作业: model-optimize —— 模型量化
+  # 依赖 code-quality 作业完成后方可执行
+  # =========================================================================
+  model-optimize:
+    name: "模型量化优化"
+    needs: code-quality  # 必须等待 code-quality 作业完成
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # 模型量化可能耗时较长
+
+    steps:
+      # 1. 检出仓库代码
+      - name: "检出代码"
+        uses: actions/checkout@v4
+
+      # 2. 设置 Python 3.10 运行环境
+      - name: "设置 Python 3.10"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # 3. 安装 numpy（量化脚本依赖）
+      - name: "安装 Python 依赖"
+        run: pip install numpy
+
+      # 4. 执行模型量化（若模型文件不存在则跳过）
+      #    量化方式: q4_0（4-bit 量化，平衡体积与精度）
+      - name: "执行模型量化"
+        run: |
+          if [ -f model/input.bin ]; then
+            echo "检测到输入模型 model/input.bin，开始量化..."
+            python model/quantize.py \
+              --input-model model/input.bin \
+              --output model/output.gguf \
+              --quantization q4_0
+            echo "模型量化完成，输出文件: model/output.gguf"
+          else
+            echo "未检测到输入模型 model/input.bin，跳过量化步骤。"
+          fi
+
+      # 5. 上传量化后的模型产物
+      - name: "上传量化模型"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quantized-model
+          path: model/output.gguf
+          retention-days: 30  # 量化模型保留 30 天
+
+  # =========================================================================
+  # 作业: performance-benchmark —— 性能基准测试
+  # 依赖 code-quality 作业完成后方可执行
+  # =========================================================================
+  performance-benchmark:
+    name: "性能基准测试"
+    needs: code-quality  # 必须等待 code-quality 作业完成
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # 1. 检出仓库代码
+      - name: "检出代码"
+        uses: actions/checkout@v4
+
+      # 2. 安装 Flutter SDK（版本 3.19.x）
+      - name: "安装 Flutter 3.19"
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.x"
+          channel: "stable"
+
+      # 3. 获取 Flutter 项目依赖
+      - name: "安装 Flutter 依赖"
+        run: flutter pub get
+
+      # 4. 运行集成测试中的性能测试用例
+      - name: "运行性能基准测试"
+        run: |
+          flutter test integration_test/performance_test.dart 2>&1 | tee performance_report.txt || true
+          echo "性能测试完成。"
+
+      # 5. 上传性能测试报告
+      - name: "上传性能测试报告"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-report
+          path: performance_report.txt
+          retention-days: 14

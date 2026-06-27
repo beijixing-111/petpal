@@ -1,0 +1,59 @@
+# PetPal iOS Podfile
+# 取消下一行注释以定义全局平台版本
+platform :ios, '14.0'
+
+# CocoaPods 分析器：发送使用统计（可关闭）
+# ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'ephemeral', 'Flutter-Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  end
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} 不存在。请确保 flutter pub get 已执行"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT 未在 #{generated_xcode_build_settings_path} 中找到"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # 如果需要 Firebase，取消以下注释并在 pubspec.yaml 添加 firebase_core
+  # pod 'FirebaseCore', :modular_headers => true
+  # pod 'FirebaseAuth', :modular_headers => true
+  # pod 'FirebaseFirestore', :modular_headers => true
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    # 设置最小部署目标
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      # 允许模拟器架构（用于 CI 构建）
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = ''
+      # 支持 Bitcode（可选）
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+end

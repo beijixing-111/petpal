@@ -1,0 +1,77 @@
+name: petpal
+description: PetPal - 跨平台智能桌面宠物应用
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.19.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Provider - 状态管理
+  provider: ^6.1.2
+
+  # sqflite - 本地 SQLite 数据库，存储对话记录和宠物状态
+  sqflite: ^2.3.3
+
+  # path_provider - 获取设备文件系统路径，用于存储模型和资源
+  path_provider: ^2.1.3
+
+  # audioplayers - 播放宠物音效和背景音乐
+  audioplayers: ^6.0.0
+
+  # firebase_core - Firebase 核心，支持用户认证和云端同步
+  firebase_core: ^2.31.0
+
+  # firebase_auth - Firebase 身份认证，支持邮箱/Google 登录
+  firebase_auth: ^4.19.4
+
+  # cloud_firestore - Firebase 云数据库，同步宠物数据和用户偏好
+  cloud_firestore: ^4.17.2
+
+  # shared_preferences - 轻量键值存储，保存用户设置
+  shared_preferences: ^2.2.3
+
+  # flutter_local_notifications - 本地通知，提醒用户与宠物互动
+  flutter_local_notifications: ^17.1.2
+
+  # cupertino_icons - iOS 风格图标
+  cupertino_icons: ^1.0.8
+
+  # path - 文件路径操作
+  path: ^1.9.0
+
+  # ffi - 调用 C/C++ 原生库（llama.cpp）
+  ffi: ^2.1.2
+
+  # crypto - 加密哈希，用于模型文件校验
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # flutter_lints - 推荐 lint 规则集
+  flutter_lints: ^4.0.0
+
+  # integration_test - 集成测试支持
+  integration_test:
+    sdk: flutter
+
+  # mockito - 单元测试 mock 框架
+  mockito: ^5.4.4
+
+  # build_runner - mockito 代码生成
+  build_runner: ^2.4.9
+
+flutter:
+  uses-material-design: true
+
+  # 应用资源
+  assets:
+    - assets/images/
+    - assets/models/
+    - assets/sounds/
+    - assets/live2d/

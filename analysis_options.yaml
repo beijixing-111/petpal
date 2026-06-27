@@ -1,0 +1,74 @@
+# PetPal Flutter 静态分析配置
+# 基于 flutter_lints 推荐规则集，补充额外严格规则
+
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # ==================== 代码风格 ====================
+    # 要求在所有流程控制语句中使用花括号
+    - curly_braces_in_flow_control_structures
+    # 导入语句按字母顺序排列
+    - directives_ordering
+    # 每行不超过 120 字符
+    - lines_longer_than_120_chars
+    # 类成员之间空一行
+    - lines_longer_than_80_chars
+    # 常量使用 lowerCamelCase
+    - constant_identifier_names
+    # 避免不必要的字符串插值
+    - prefer_interpolation_to_compose_strings
+    # 使用 const 构造函数
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+
+    # ==================== 错误预防 ====================
+    # 避免在 void 函数中返回值
+    - avoid_returning_null_for_void
+    # 避免类型安全的空检查操作符
+    - avoid_null_checks_in_equality_operators
+    # 避免未使用的导入
+    - unnecessary_import
+    # 避免未使用的局部变量
+    - unused_local_variable
+    # 避免空 catch 块
+    - empty_catches
+    # 避免在 finally 块中使用 return
+    - no_adjacent_strings_in_list
+
+    # ==================== Flutter 专属 ====================
+    # 使用 SizedBox 替代 Container 作为间隙
+    - sized_box_for_whitespace
+    # 避免在无状态 widget 中使用 setState
+    - use_build_context_synchronously
+    # 公开 API 需要文档注释
+    - public_member_api_docs
+    # 排序 child 属性最后
+    - sort_child_properties_last
+    # 避免在 widget 构建中执行异步操作
+    - use_key_in_widget_constructors
+
+    # ==================== 性能 ====================
+    # ListView 使用 itemExtent 或 prototypeItem 提升性能
+    - avoid_redundant_argument_values
+    # 避免不必要的 setState 调用
+    - avoid_unnecessary_containers
+    # 避免使用 print()，使用 debugPrint() 或日志框架
+    - avoid_print
+
+analyzer:
+  errors:
+    # 将缺失返回语句视为错误
+    missing_return: error
+    # 将未使用导入视为警告
+    unused_import: warning
+    # 将无效注解视为错误
+    invalid_annotation_target: ignore
+
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/generated/**"
+    - "build/**"
+    - ".dart_tool/**"
