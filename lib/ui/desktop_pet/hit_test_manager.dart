@@ -92,7 +92,7 @@ class HitTestManager {
   }
 
   /// 获取圆形热区信息（调试用）
-  ({Offset center, double radius}) get circleZone => (_circleCenter, _circleRadius);
+  ({Offset center, double radius}) get circleZone => (center: _circleCenter, radius: _circleRadius);
 
   /// 获取矩形热区列表（调试用）
   List<Rect> get rectZones => _rectZones.map((z) => z.rect).toList();

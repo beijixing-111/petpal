@@ -124,7 +124,7 @@ class PetProvider extends ChangeNotifier {
   /// 互动（抚摸、玩耍等）
   void interact() {
     _petState.increaseAffection();
-    _petState.addExp(amount: 5); // 互动奖励少量经验
+    _petState.addExp(5); // 互动奖励少量经验
 
     // 根据亲密度更新情绪
     _emotionState.updateFromAffection(_petState.affection);

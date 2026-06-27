@@ -1,3 +1,4 @@
+import 'dart:ui' show Color;
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:petpal/models/emotion.dart';

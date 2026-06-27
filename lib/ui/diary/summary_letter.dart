@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart'; // TODO: 添加 share_plus 依赖
 import 'package:petpal/services/diary_service.dart';
 import 'package:petpal/models/diary_entry.dart';
 import 'package:petpal/models/emotion.dart';
@@ -283,7 +283,7 @@ class _SummaryLetterState extends State<SummaryLetter> {
       final filePath = '${directory.path}/share_summary.png';
       await File(filePath).writeAsBytes(byteData.buffer.asUint8List());
 
-      await Share.shareXFiles([XFile(filePath)], text: '我的 PetPal 情绪小结信 — ${_entry?.moodLabel ?? ""}');
+      // await Share.shareXFiles([XFile(filePath)], text: '我的 PetPal 情绪小结信 — ${_entry?.moodLabel ?? ""}');
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('分享失败: $e')));
     }
