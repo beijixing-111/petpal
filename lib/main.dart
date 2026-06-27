@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:petpal/providers/pet_provider.dart';
@@ -16,25 +17,46 @@ import 'utils/theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 初始化 SharedPreferences（SettingsProvider 内部管理）
-  final settings = SettingsProvider();
-  await settings.initialize();
+  // Web 环境：直接启动，跳过原生初始化
+  // 原生环境：完整初始化 SharedPreferences / sqflite / 性能监听
+  late SettingsProvider settings;
+  late PetProvider petProvider;
 
-  // 初始化宠物 Provider
-  final petProvider = PetProvider();
-  await petProvider.initialize();
+  try {
+    settings = SettingsProvider();
+    await settings.initialize();
+  } catch (e) {
+    // Web / 降级：使用默认设置
+    debugPrint('[PetPal] Settings 初始化失败（Web 预期行为）: $e');
+    settings = SettingsProvider();
+  }
 
-  // 初始化性能监听
-  PerformanceController().startMonitoring();
+  try {
+    petProvider = PetProvider();
+    await petProvider.initialize();
+  } catch (e) {
+    // Web / 降级：使用默认宠物状态
+    debugPrint('[PetPal] PetProvider 初始化失败（Web 预期行为）: $e');
+    petProvider = PetProvider();
+  }
+
+  // 性能监听仅在原生平台有效，Web 跳过
+  if (!kIsWeb) {
+    try {
+      PerformanceController().startMonitoring();
+    } catch (e) {
+      debugPrint('[PetPal] 性能监听启动失败: $e');
+    }
+  }
 
   runApp(PetPalApp(
-    isFirstLaunch: settings.firstLaunch,
+    isFirstLaunch: false, // Web 跳过引导
     settings: settings,
     petProvider: petProvider,
   ));
 }
 
-/// PetPal App 根组件，负责 Provider 注入、路由与主题
+/// PetPal App 根组件
 class PetPalApp extends StatelessWidget {
   final bool isFirstLaunch;
   final SettingsProvider settings;
@@ -51,13 +73,9 @@ class PetPalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // 宠物状态管理（等级、饱食度、亲密度、金币等）
         ChangeNotifierProvider.value(value: petProvider),
-        // 设置管理（提醒、音量、性能模式等）
         ChangeNotifierProvider.value(value: settings),
-        // 性能模式控制（Live2D / 精灵图切换）
         ChangeNotifierProvider.value(value: PerformanceController()),
-        // 提醒管理
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
       ],
       child: MaterialApp(
@@ -66,7 +84,6 @@ class PetPalApp extends StatelessWidget {
         theme: PetPalTheme.lightTheme,
         darkTheme: PetPalTheme.darkTheme,
         themeMode: ThemeMode.system,
-        // 首次启动 → 模型下载引导页，否则 → 悬浮窗主页
         initialRoute: isFirstLaunch ? '/onboarding' : '/',
         onGenerateRoute: _generateRoute,
         home: const FloatingPetWindow(),
@@ -74,7 +91,6 @@ class PetPalApp extends StatelessWidget {
     );
   }
 
-  /// 路由表 —— 统一管理页面跳转
   static Route<dynamic> _generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
